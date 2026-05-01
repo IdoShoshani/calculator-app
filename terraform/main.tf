@@ -30,13 +30,62 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+# ── VPC & Networking ──────────────────────────────────────────────────────────
+resource "aws_vpc" "main" {
+  cidr_block                       = "10.0.0.0/16"
+  enable_dns_support               = true
+  enable_dns_hostnames             = true
+  assign_generated_ipv6_cidr_block = true
+
+  tags = { Name = "calculator-app-vpc", Project = "calculator-app" }
+}
+
+resource "aws_subnet" "public" {
+  vpc_id                          = aws_vpc.main.id
+  cidr_block                      = "10.0.1.0/24"
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)
+  map_public_ip_on_launch         = true
+  assign_ipv6_address_on_creation = true
+  availability_zone               = "${var.aws_region}a"
+
+  tags = { Name = "calculator-app-public", Project = "calculator-app" }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = { Name = "calculator-app-igw", Project = "calculator-app" }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.igw.id
+  }
+
+  tags = { Name = "calculator-app-rt", Project = "calculator-app" }
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
+}
+
 # ── Security Group ────────────────────────────────────────────────────────────
 resource "aws_security_group" "calculator_sg" {
   name        = "calculator-app-sg"
   description = "Allow inbound traffic on app port and SSH"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
-    description      = "Application traffic (IPv4)"
+    description      = "Application traffic (IPv4 + IPv6)"
     from_port        = var.app_port
     to_port          = var.app_port
     protocol         = "tcp"
@@ -77,10 +126,7 @@ resource "aws_security_group" "calculator_sg" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
-  tags = {
-    Name    = "calculator-app-sg"
-    Project = "calculator-app"
-  }
+  tags = { Name = "calculator-app-sg", Project = "calculator-app" }
 
   lifecycle {
     precondition {
@@ -95,6 +141,7 @@ resource "aws_instance" "calculator" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   key_name               = var.ssh_key_name
+  subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.calculator_sg.id]
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
@@ -102,11 +149,7 @@ resource "aws_instance" "calculator" {
     app_port     = var.app_port
   })
 
-  # Ensure the instance is replaced (not updated in-place) when user_data changes
   user_data_replace_on_change = true
 
-  tags = {
-    Name    = "calculator-app"
-    Project = "calculator-app"
-  }
+  tags = { Name = "calculator-app", Project = "calculator-app" }
 }
