@@ -4,8 +4,8 @@
 aws_region    = "us-east-1"
 instance_type = "t2.micro"        # free-tier eligible
 app_port      = 8080
-ssh_key_name  = "my-key-pair"     # name of an existing EC2 key pair
 docker_image  = "yourdockerhubuser/calculator-app:latest"
+# SSH key pair is generated automatically by Terraform — no manual step needed
 
 # Set whichever matches your connection (or both).
 # Find your IPs:
