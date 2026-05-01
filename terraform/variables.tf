@@ -27,7 +27,11 @@ variable "docker_image" {
 }
 
 variable "allowed_ssh_cidr" {
-  description = "CIDR block allowed to SSH into the instance. Restrict to your IP in production."
+  description = "Your public IP in CIDR notation (e.g. 203.0.113.42/32). Only this IP can SSH into the instance."
   type        = string
-  default     = "0.0.0.0/0"
+
+  validation {
+    condition     = can(cidrnetmask(var.allowed_ssh_cidr)) && !endswith(var.allowed_ssh_cidr, "/0")
+    error_message = "allowed_ssh_cidr must be a valid CIDR and must not be open to the world (e.g. use YOUR_IP/32)."
+  }
 }
