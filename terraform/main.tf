@@ -36,32 +36,57 @@ resource "aws_security_group" "calculator_sg" {
   description = "Allow inbound traffic on app port and SSH"
 
   ingress {
-    description = "Application traffic"
-    from_port   = var.app_port
-    to_port     = var.app_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description      = "Application traffic (IPv4)"
+    from_port        = var.app_port
+    to_port          = var.app_port
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
-  ingress {
-    description = "SSH access"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.allowed_ssh_cidr]
+  # SSH — IPv4 (only added when allowed_ssh_ipv4_cidr is set)
+  dynamic "ingress" {
+    for_each = var.allowed_ssh_ipv4_cidr != null ? [var.allowed_ssh_ipv4_cidr] : []
+    content {
+      description = "SSH access (IPv4)"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
+  }
+
+  # SSH — IPv6 (only added when allowed_ssh_ipv6_cidr is set)
+  dynamic "ingress" {
+    for_each = var.allowed_ssh_ipv6_cidr != null ? [var.allowed_ssh_ipv6_cidr] : []
+    content {
+      description      = "SSH access (IPv6)"
+      from_port        = 22
+      to_port          = 22
+      protocol         = "tcp"
+      ipv6_cidr_blocks = [ingress.value]
+    }
   }
 
   egress {
-    description = "Allow all outbound (needed to pull Docker images)"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description      = "Allow all outbound (needed to pull Docker images)"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   tags = {
     Name    = "calculator-app-sg"
     Project = "calculator-app"
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.allowed_ssh_ipv4_cidr != null || var.allowed_ssh_ipv6_cidr != null
+      error_message = "You must set at least one of allowed_ssh_ipv4_cidr or allowed_ssh_ipv6_cidr."
+    }
   }
 }
 
