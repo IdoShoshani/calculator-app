@@ -1,0 +1,37 @@
+# Maven build output
+target/
+*.class
+
+# Maven wrapper download cache
+.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+*.tfvars
+!terraform.tfvars.example
+
+# Secrets / credentials
+*.pem
+*.env
+.env*
