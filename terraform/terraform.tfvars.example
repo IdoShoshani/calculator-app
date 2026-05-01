@@ -7,5 +7,10 @@ app_port      = 8080
 ssh_key_name  = "my-key-pair"     # name of an existing EC2 key pair
 docker_image  = "yourdockerhubuser/calculator-app:latest"
 
-# Your public IP only — run: curl -s ifconfig.me
-allowed_ssh_cidr = "YOUR_PUBLIC_IP/32"
+# Set whichever matches your connection (or both).
+# Find your IPs:
+#   IPv4 → curl -4 -s ifconfig.me
+#   IPv6 → curl -6 -s ifconfig.me
+
+# allowed_ssh_ipv4_cidr = "203.0.113.42/32"
+# allowed_ssh_ipv6_cidr = "2001:db8::1/128"
