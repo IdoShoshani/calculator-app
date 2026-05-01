@@ -16,11 +16,6 @@ variable "app_port" {
   default     = 8080
 }
 
-variable "ssh_key_name" {
-  description = "Name of an existing EC2 key pair for SSH access"
-  type        = string
-}
-
 variable "docker_image" {
   description = "Full Docker image reference to run on the instance (e.g. username/calculator-app:latest)"
   type        = string

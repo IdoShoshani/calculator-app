@@ -20,5 +20,10 @@ output "app_url" {
 
 output "ssh_command" {
   description = "SSH command to connect to the instance"
-  value       = "ssh -i <your-key.pem> ubuntu@${aws_instance.calculator.public_ip}"
+  value       = "ssh -i ${local_sensitive_file.private_key.filename} ubuntu@${aws_instance.calculator.public_ip}"
+}
+
+output "private_key_path" {
+  description = "Path to the generated private key file (use this as EC2_SSH_PRIVATE_KEY in GitHub Secrets)"
+  value       = local_sensitive_file.private_key.filename
 }
