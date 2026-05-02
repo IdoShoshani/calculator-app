@@ -72,15 +72,13 @@ test → build-and-push → deploy
 |--------|-------|
 | `DOCKERHUB_USERNAME` | Docker Hub username |
 | `DOCKERHUB_TOKEN` | Docker Hub access token |
-| `EC2_HOST` | EC2 public IP (from `task tf:output`) |
-| `EC2_USER` | `ubuntu` |
-| `EC2_SSH_PRIVATE_KEY` | Contents of `terraform/calculator-key.pem` |
+| `AWS_ACCESS_KEY_ID` | AWS IAM access key |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM secret key |
 
 ## Terraform Infrastructure
 
 - **No default VPC assumed** — creates its own VPC + subnet + IGW + route table
-- **SSH key pair managed by Terraform** — private key saved to `terraform/calculator-key.pem` (git-ignored)
-- **SSH restricted by IP** — set `allowed_ssh_ipv4_cidr` or `allowed_ssh_ipv6_cidr` in `terraform.tfvars`; `/0` is rejected by validation
+- **No SSH** — port 22 is not open; remote access is via AWS SSM Session Manager only (`aws ssm start-session --target <instance-id>`)
 - **AMI resolved dynamically** — always uses latest Ubuntu 22.04 LTS (Canonical account)
 - **`user_data_replace_on_change = true`** — changing `docker_image` in tfvars triggers EC2 replacement
 
@@ -116,6 +114,5 @@ After `apply`, copy `terraform/calculator-key.pem` contents into the `EC2_SSH_PR
 
 ## Known Constraints
 
-- **SSH access is IPv6-only by default** — the `terraform.tfvars` has only `allowed_ssh_ipv6_cidr` set. If your IPv6 address changes (e.g., reconnecting to a different network), update the CIDR and run `task tf:apply`.
 - **Free-tier EC2** — `t2.micro` in `us-east-1`. The instance has no persistent storage for Docker volumes.
 - **No HTTPS** — the app is served over plain HTTP on port 8080. Add an ALB + ACM certificate if TLS is needed.
