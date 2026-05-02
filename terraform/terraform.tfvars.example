@@ -2,15 +2,6 @@
 # terraform.tfvars is git-ignored — never commit real values.
 
 aws_region    = "us-east-1"
-instance_type = "t2.micro"        # free-tier eligible
+instance_type = "t2.micro" # free-tier eligible
 app_port      = 8080
 docker_image  = "yourdockerhubuser/calculator-app:latest"
-# SSH key pair is generated automatically by Terraform — no manual step needed
-
-# Set whichever matches your connection (or both).
-# Find your IPs:
-#   IPv4 → curl -4 -s ifconfig.me
-#   IPv6 → curl -6 -s ifconfig.me
-
-# allowed_ssh_ipv4_cidr = "203.0.113.42/32"
-# allowed_ssh_ipv6_cidr = "2001:db8::1/128"

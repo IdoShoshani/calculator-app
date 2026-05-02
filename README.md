@@ -16,7 +16,7 @@ Developer push to main
 │   GitHub Actions Pipeline   │
 │  1. test  (all branches)    │
 │  2. build & push → Docker Hub│
-│  3. deploy via SSH → EC2    │
+│  3. deploy via SSM → EC2    │
 └─────────────────────────────┘
         │
         ▼
@@ -132,19 +132,18 @@ The pipeline in [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) run
 | ---------------- | ------------------- | ---------------------------------------------------------------------- |
 | `test`           | every push & PR     | Installs Terraform and Task, then runs `task check` with Maven cache   |
 | `build-and-push` | push to `main` only | Builds Docker image, pushes to Docker Hub with `latest` + `sha-*` tags |
-| `deploy`         | push to `main` only | SSH into EC2, zero-downtime container swap                             |
+| `deploy`         | push to `main` only | Deploy to EC2 via AWS SSM (no SSH required)                            |
 
 ### Required GitHub Secrets
 
 Go to **Settings → Secrets and variables → Actions** and add:
 
-| Secret                | Value                                                                                |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `DOCKERHUB_USERNAME`  | Your Docker Hub username                                                             |
-| `DOCKERHUB_TOKEN`     | Docker Hub access token (create at hub.docker.com → Account Settings → Security)     |
-| `EC2_HOST`            | Public IP from `task tf:output -- public_ip`                                         |
-| `EC2_USER`            | `ubuntu`                                                                             |
-| `EC2_SSH_PRIVATE_KEY` | Full contents of the generated `.pem` file from `task tf:output -- private_key_path` |
+| Secret                   | Value                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `DOCKERHUB_USERNAME`     | Your Docker Hub username                                                         |
+| `DOCKERHUB_TOKEN`        | Docker Hub access token (create at hub.docker.com → Account Settings → Security) |
+| `AWS_ACCESS_KEY_ID`      | AWS IAM access key                                                               |
+| `AWS_SECRET_ACCESS_KEY`  | AWS IAM secret key                                                               |
 
 ---
 
@@ -156,10 +155,6 @@ Go to **Settings → Secrets and variables → Actions** and add:
 export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 ```
-
-### EC2 SSH key pair
-
-Terraform generates the EC2 key pair automatically and writes the private key to a local `.pem` file next to the Terraform configuration.
 
 ### Deploy
 
