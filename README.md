@@ -46,6 +46,7 @@ Developer push to main
 | Tool | macOS | Windows |
 |------|-------|---------|
 | Java 21+ | `brew install --cask temurin@21` | [adoptium.net](https://adoptium.net) |
+| Task | `brew install go-task` | `winget install Task.Task` |
 | Docker | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
 | Terraform | `brew install terraform` | `choco install terraform` |
 | AWS CLI | `brew install awscli` | `choco install awscli` |
@@ -53,16 +54,43 @@ Developer push to main
 
 ---
 
-## 1 — Run locally
+## 1 — Task-first workflow
 
-**macOS / Linux:**
+The repository ships with a root [`Taskfile.yml`](Taskfile.yml), so the recommended way to work with it is through `task`.
+
 ```bash
-./mvnw spring-boot:run
+task --list
 ```
 
-**Windows:**
-```cmd
-mvnw.cmd spring-boot:run
+Common commands:
+
+```bash
+task run
+task test
+task package
+task docker:build
+task docker:run
+task tf:init
+task tf:plan
+task tf:apply
+task tf:destroy
+task check
+```
+
+You can override variables from the command line when needed:
+
+```bash
+task docker:build DOCKER_IMAGE=yourdockerhubuser/calculator-app:latest
+task docker:run DOCKER_IMAGE=yourdockerhubuser/calculator-app:latest HOST_PORT=8081
+task tf:plan -- -out=tfplan
+```
+
+---
+
+## 2 — Run locally
+
+```bash
+task run
 ```
 
 Then:
@@ -74,23 +102,19 @@ curl "http://localhost:8080/api/calculate/add?a=3&b=4"
 ### Run unit tests
 
 ```bash
-# macOS / Linux
-./mvnw test
-
-# Windows
-mvnw.cmd test
+task test
 ```
 
 ---
 
-## 2 — Run with Docker
+## 3 — Run with Docker
 
 ```bash
 # Build
-docker build -t calculator-app .
+task docker:build
 
 # Run
-docker run -p 8080:8080 calculator-app
+task docker:run
 
 # Test
 curl "http://localhost:8080/api/calculate/multiply?a=6&b=7"
@@ -99,13 +123,13 @@ curl "http://localhost:8080/api/calculate/multiply?a=6&b=7"
 
 ---
 
-## 3 — CI/CD Pipeline (GitHub Actions)
+## 4 — CI/CD Pipeline (GitHub Actions)
 
 The pipeline in [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) runs automatically:
 
 | Job | Trigger | Action |
 |-----|---------|--------|
-| `test` | every push & PR | Runs `./mvnw test` with Maven cache |
+| `test` | every push & PR | Installs Terraform and Task, then runs `task check` with Maven cache |
 | `build-and-push` | push to `main` only | Builds Docker image, pushes to Docker Hub with `latest` + `sha-*` tags |
 | `deploy` | push to `main` only | SSH into EC2, zero-downtime container swap |
 
@@ -117,13 +141,13 @@ Go to **Settings → Secrets and variables → Actions** and add:
 |--------|-------|
 | `DOCKERHUB_USERNAME` | Your Docker Hub username |
 | `DOCKERHUB_TOKEN` | Docker Hub access token (create at hub.docker.com → Account Settings → Security) |
-| `EC2_HOST` | Public IP from `terraform output public_ip` |
+| `EC2_HOST` | Public IP from `task tf:output -- public_ip` |
 | `EC2_USER` | `ubuntu` |
-| `EC2_SSH_PRIVATE_KEY` | Full contents of your `.pem` key file |
+| `EC2_SSH_PRIVATE_KEY` | Full contents of the generated `.pem` file from `task tf:output -- private_key_path` |
 
 ---
 
-## 4 — Provision infrastructure with Terraform
+## 5 — Provision infrastructure with Terraform
 
 ### AWS credentials
 
@@ -132,42 +156,35 @@ export AWS_ACCESS_KEY_ID=your_access_key
 export AWS_SECRET_ACCESS_KEY=your_secret_key
 ```
 
-### Create an EC2 key pair (first time only)
+### EC2 SSH key pair
 
-```bash
-aws ec2 create-key-pair --key-name calculator-key \
-  --query 'KeyMaterial' --output text > calculator-key.pem
-chmod 400 calculator-key.pem   # macOS/Linux only
-```
+Terraform generates the EC2 key pair automatically and writes the private key to a local `.pem` file next to the Terraform configuration.
 
 ### Deploy
 
 ```bash
-cd terraform
-
 # Copy and edit the example vars file
-cp terraform.tfvars.example terraform.tfvars
-# Set: ssh_key_name = "calculator-key"
-#      docker_image = "yourdockerhubuser/calculator-app:latest"
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+# Set: docker_image = "yourdockerhubuser/calculator-app:latest"
 
-terraform init
-terraform plan
-terraform apply
+task tf:init
+task tf:plan
+task tf:apply
 ```
 
 ### Get the app URL
 
 ```bash
-terraform output app_url
+task tf:output -- app_url
 # → http://<public-ip>:8080/api/calculate
 ```
 
-> **Note:** After `terraform apply`, wait ~60 seconds for the EC2 user data script to finish installing Docker and pulling the image.
+> **Note:** After `task tf:apply`, wait ~60 seconds for the EC2 user data script to finish installing Docker and pulling the image.
 
 ### Tear down
 
 ```bash
-terraform destroy
+task tf:destroy
 ```
 
 ---
@@ -176,6 +193,7 @@ terraform destroy
 
 ```
 calculator-app/
+├── Taskfile.yml                   # Top-level task runner commands
 ├── .github/workflows/ci-cd.yml   # GitHub Actions pipeline
 ├── src/
 │   ├── main/java/com/example/calculator/

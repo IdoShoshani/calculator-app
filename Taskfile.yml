@@ -1,0 +1,109 @@
+version: '3'
+
+vars:
+  APP_PORT: 8080
+  HOST_PORT: 8080
+  DOCKER_IMAGE: calculator-app
+  TERRAFORM_DIR: terraform
+
+tasks:
+  default:
+    desc: List available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  check:
+    desc: Run the main local checks
+    cmds:
+      - task: test
+      - task: tf:fmt-check
+      - task: tf:validate
+
+  run:
+    desc: Run the Spring Boot app locally with Maven Wrapper
+    cmds:
+      - cmd: ./mvnw spring-boot:run
+        platforms: [linux, darwin]
+      - cmd: cmd /c mvnw.cmd spring-boot:run
+        platforms: [windows]
+
+  test:
+    desc: Run unit tests with Maven Wrapper
+    cmds:
+      - cmd: ./mvnw test --no-transfer-progress
+        platforms: [linux, darwin]
+      - cmd: cmd /c mvnw.cmd test --no-transfer-progress
+        platforms: [windows]
+
+  package:
+    desc: Build the runnable JAR with Maven Wrapper
+    cmds:
+      - cmd: ./mvnw clean package --no-transfer-progress
+        platforms: [linux, darwin]
+      - cmd: cmd /c mvnw.cmd clean package --no-transfer-progress
+        platforms: [windows]
+
+  clean:
+    desc: Clean Maven build outputs
+    cmds:
+      - cmd: ./mvnw clean --no-transfer-progress
+        platforms: [linux, darwin]
+      - cmd: cmd /c mvnw.cmd clean --no-transfer-progress
+        platforms: [windows]
+
+  docker:build:
+    desc: Build the Docker image (override with DOCKER_IMAGE=myrepo/calculator-app:tag)
+    cmd: docker build -t {{.DOCKER_IMAGE}} .
+
+  docker:run:
+    desc: Run the Docker image locally (override HOST_PORT, APP_PORT, or DOCKER_IMAGE)
+    cmd: docker run --rm -p {{.HOST_PORT}}:{{.APP_PORT}} {{.DOCKER_IMAGE}}
+
+  tf:init:
+    desc: Initialize Terraform
+    dir: '{{.TERRAFORM_DIR}}'
+    cmd: terraform init {{.CLI_ARGS}}
+
+  tf:fmt:
+    desc: Format Terraform files
+    dir: '{{.TERRAFORM_DIR}}'
+    cmd: terraform fmt -recursive {{.CLI_ARGS}}
+
+  tf:fmt-check:
+    desc: Check Terraform formatting without changing files
+    dir: '{{.TERRAFORM_DIR}}'
+    cmd: terraform fmt -check -diff {{.CLI_ARGS}}
+
+  tf:validate:
+    desc: Validate the Terraform configuration
+    dir: '{{.TERRAFORM_DIR}}'
+    cmds:
+      - task: tf:init
+      - terraform validate {{.CLI_ARGS}}
+
+  tf:plan:
+    desc: Run terraform plan
+    dir: '{{.TERRAFORM_DIR}}'
+    cmds:
+      - task: tf:init
+      - terraform plan {{.CLI_ARGS}}
+
+  tf:apply:
+    desc: Run terraform apply
+    dir: '{{.TERRAFORM_DIR}}'
+    cmds:
+      - task: tf:init
+      - terraform apply {{.CLI_ARGS}}
+
+  tf:destroy:
+    desc: Run terraform destroy
+    dir: '{{.TERRAFORM_DIR}}'
+    cmds:
+      - task: tf:init
+      - terraform destroy {{.CLI_ARGS}}
+
+  tf:output:
+    desc: Show Terraform outputs
+    dir: '{{.TERRAFORM_DIR}}'
+    cmd: terraform output {{.CLI_ARGS}}

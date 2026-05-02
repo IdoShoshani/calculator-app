@@ -19,6 +19,9 @@ target/
 # VS Code
 .vscode/
 
+# Task
+.task/
+
 # OS files
 .DS_Store
 Thumbs.db
