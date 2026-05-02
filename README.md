@@ -31,6 +31,7 @@ Developer push to main
 
 | Method | Path | Params | Example Response |
 |--------|------|--------|-----------------|
+| GET | `/` | - | Browser calculator UI |
 | GET | `/api/calculate/add` | `a`, `b` | `{"result": 7.0}` |
 | GET | `/api/calculate/subtract` | `a`, `b` | `{"result": 1.0}` |
 | GET | `/api/calculate/multiply` | `a`, `b` | `{"result": 12.0}` |
@@ -96,8 +97,7 @@ task run
 
 Then:
 ```bash
-curl "http://localhost:8090/api/calculate/add?a=3&b=4"
-# → {"result":7.0}
+Visit http://localhost:8090/ in your browser
 ```
 
 ### Run unit tests
@@ -117,9 +117,8 @@ task docker:build
 # Run
 task docker:run
 
-# Test
-curl "http://localhost:8090/api/calculate/multiply?a=6&b=7"
-# → {"result":42.0}
+# Open
+Visit http://localhost:8090/ in your browser
 ```
 
 ---
@@ -202,6 +201,10 @@ calculator-app/
 │   │   ├── controller/CalculatorController.java
 │   │   └── service/CalculatorService.java
 │   ├── main/resources/application.properties
+│   ├── main/resources/static/
+│   │   ├── index.html             # Browser calculator UI
+│   │   ├── styles.css             # UI styling
+│   │   └── app.js                 # UI logic
 │   └── test/java/com/example/calculator/service/
 │       └── CalculatorServiceTest.java
 ├── terraform/
