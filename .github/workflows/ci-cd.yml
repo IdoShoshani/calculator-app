@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/calculator-app
+  AWS_REGION: us-east-1
 
 jobs:
   # ── Job 1: Build & Test ──────────────────────────────────────────────────
@@ -80,26 +81,50 @@ jobs:
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
-  # ── Job 3: Deploy to EC2 ─────────────────────────────────────────────────
+  # ── Job 3: Deploy to EC2 via SSM (no inbound SSH required) ──────────────────
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     needs: build-and-push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          script: |
-            docker pull ${{ env.IMAGE_NAME }}:latest
-            docker stop calculator-app || true
-            docker rm   calculator-app || true
-            docker run -d \
-              --name calculator-app \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              ${{ env.IMAGE_NAME }}:latest
-            docker image prune -f
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy via SSM
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters \
+              "Name=tag:Name,Values=calculator-app" \
+              "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+
+          echo "Target instance: $INSTANCE_ID"
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "{\"commands\":[
+              \"docker pull ${IMAGE}:latest\",
+              \"docker stop calculator-app || true\",
+              \"docker rm calculator-app || true\",
+              \"docker run -d --name calculator-app --restart unless-stopped -p 8080:8080 ${IMAGE}:latest\",
+              \"docker image prune -f\"
+            ]}" \
+            --output text \
+            --query "Command.CommandId")
+
+          echo "SSM command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+          echo "Deployment complete"
