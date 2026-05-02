@@ -12,7 +12,7 @@ env:
 jobs:
   # ── Job 1: Build & Test ──────────────────────────────────────────────────
   test:
-    name: Build & Test
+    name: Shared Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,8 +30,14 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-m2-
 
-      - name: Run tests
-        run: ./mvnw test --no-transfer-progress
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Install Task
+        uses: go-task/setup-task@v1
+
+      - name: Run shared checks via Taskfile
+        run: task check
 
   # ── Job 2: Build Docker image & push to Docker Hub ───────────────────────
   build-and-push:
