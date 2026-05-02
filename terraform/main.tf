@@ -129,6 +129,10 @@ resource "aws_security_group" "calculator_sg" {
   }
 
   tags = { Name = "calculator-app-sg", Project = "calculator-app" }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # ── EC2 Instance ──────────────────────────────────────────────────────────────
