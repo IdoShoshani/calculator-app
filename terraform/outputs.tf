@@ -15,5 +15,5 @@ output "public_dns" {
 
 output "app_url" {
   description = "URL to reach the calculator API"
-  value       = "http://${aws_instance.calculator.public_ip}:${var.app_port}/api/calculate"
+  value       = "http://${aws_instance.calculator.public_dns}:${var.app_port}"
 }
