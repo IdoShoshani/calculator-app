@@ -14,5 +14,6 @@ docker pull ${docker_image}
 docker run -d \
   --name calculator-app \
   --restart unless-stopped \
+  -e SERVER_PORT=${app_port} \
   -p ${app_port}:${app_port} \
   ${docker_image}

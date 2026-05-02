@@ -24,9 +24,10 @@ USER appuser
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 
+ENV SERVER_PORT=8080
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+  CMD wget -qO- "http://localhost:${SERVER_PORT}/actuator/health" || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
