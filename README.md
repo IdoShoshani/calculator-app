@@ -82,6 +82,7 @@ You can override variables from the command line when needed:
 ```bash
 task docker:build DOCKER_IMAGE=yourdockerhubuser/calculator-app:latest
 task docker:run DOCKER_IMAGE=yourdockerhubuser/calculator-app:latest HOST_PORT=8081
+SERVER_PORT=8090 task run
 task tf:plan -- -out=tfplan
 ```
 
@@ -95,7 +96,7 @@ task run
 
 Then:
 ```bash
-curl "http://localhost:8080/api/calculate/add?a=3&b=4"
+curl "http://localhost:8090/api/calculate/add?a=3&b=4"
 # → {"result":7.0}
 ```
 
@@ -117,7 +118,7 @@ task docker:build
 task docker:run
 
 # Test
-curl "http://localhost:8080/api/calculate/multiply?a=6&b=7"
+curl "http://localhost:8090/api/calculate/multiply?a=6&b=7"
 # → {"result":42.0}
 ```
 

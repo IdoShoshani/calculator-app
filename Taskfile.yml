@@ -1,8 +1,8 @@
 version: '3'
 
 vars:
-  APP_PORT: 8080
-  HOST_PORT: 8080
+  APP_PORT: '{{env "SERVER_PORT" | default "8090"}}'
+  HOST_PORT: '{{.APP_PORT}}'
   DOCKER_IMAGE: calculator-app
   TERRAFORM_DIR: terraform
 
@@ -23,9 +23,9 @@ tasks:
   run:
     desc: Run the Spring Boot app locally with Maven Wrapper
     cmds:
-      - cmd: ./mvnw spring-boot:run
+      - cmd: SERVER_PORT={{.APP_PORT}} ./mvnw spring-boot:run
         platforms: [linux, darwin]
-      - cmd: cmd /c mvnw.cmd spring-boot:run
+      - cmd: cmd /c "set SERVER_PORT={{.APP_PORT}}&& mvnw.cmd spring-boot:run"
         platforms: [windows]
 
   test:
@@ -58,7 +58,7 @@ tasks:
 
   docker:run:
     desc: Run the Docker image locally (override HOST_PORT, APP_PORT, or DOCKER_IMAGE)
-    cmd: docker run --rm -p {{.HOST_PORT}}:{{.APP_PORT}} {{.DOCKER_IMAGE}}
+    cmd: docker run --rm -e SERVER_PORT={{.APP_PORT}} -p {{.HOST_PORT}}:{{.APP_PORT}} {{.DOCKER_IMAGE}}
 
   tf:init:
     desc: Initialize Terraform
