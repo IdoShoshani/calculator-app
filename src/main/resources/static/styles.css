@@ -51,24 +51,12 @@ body {
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0;
 }
 
-h1,
-h2,
-p {
-  margin: 0;
-}
+h1, h2, p { margin: 0; }
 
-h1 {
-  font-size: 36px;
-  line-height: 1.1;
-}
-
-h2 {
-  font-size: 16px;
-  line-height: 1.2;
-}
+h1 { font-size: 36px; line-height: 1.1; }
+h2 { font-size: 16px; line-height: 1.2; }
 
 .health-badge {
   min-width: 118px;
@@ -113,11 +101,12 @@ h2 {
   padding: 18px;
 }
 
+/* ── Display ── */
 .display {
-  min-height: 180px;
+  min-height: 160px;
   display: grid;
   align-content: end;
-  gap: 10px;
+  gap: 6px;
   padding: 22px;
   border-radius: 8px;
   background: linear-gradient(135deg, #0f172a 0%, #123c3a 100%);
@@ -128,106 +117,87 @@ h2 {
   min-height: 24px;
   color: #a7f3d0;
   font-size: 18px;
+  text-align: right;
   overflow-wrap: anywhere;
 }
 
 .result {
   display: block;
-  min-height: 74px;
   font-size: 68px;
   font-weight: 800;
   line-height: 1;
+  text-align: right;
   overflow-wrap: anywhere;
 }
 
-.calculator-form {
+/* ── Numpad ── */
+.numpad {
   display: grid;
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
   margin-top: 14px;
 }
 
-.input-grid,
-.operation-grid,
-.actions {
-  display: grid;
-  gap: 10px;
-}
-
-.input-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.operation-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.actions {
-  grid-template-columns: minmax(0, 1fr) 110px;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-.field span {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.field input {
-  width: 100%;
-  height: 52px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--text);
-  background: var(--panel);
+.btn {
+  height: 62px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   font: inherit;
-  font-size: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.1s, transform 0.08s;
+  user-select: none;
 }
 
-.field input:focus-visible,
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid rgba(37, 99, 235, 0.25);
+.btn:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
   outline-offset: 2px;
 }
 
-button {
-  height: 52px;
-  border: 0;
-  border-radius: 8px;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
+.btn:active {
+  transform: scale(0.94);
+  filter: brightness(0.88);
 }
 
-.operation-button {
-  color: var(--text);
+.btn-digit {
   background: var(--panel-muted);
-  border: 1px solid var(--line);
-  font-size: 24px;
+  color: var(--text);
+  border-color: var(--line);
 }
 
-.operation-button.active {
-  color: #ffffff;
+.btn-fn {
+  background: #e2e8f0;
+  color: var(--text);
+  border-color: #c8d3e0;
+}
+
+.btn-op {
   background: var(--accent);
-  border-color: var(--accent);
-}
-
-.primary-button {
   color: #ffffff;
+  font-size: 26px;
+}
+
+.btn-op.active-op {
+  background: #ffffff;
+  color: var(--accent);
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.btn-eq {
   background: var(--blue);
+  color: #ffffff;
+  font-size: 26px;
 }
 
-.secondary-button {
-  color: var(--text);
-  background: var(--panel-muted);
-  border: 1px solid var(--line);
+.btn-zero {
+  grid-column: span 2;
+  text-align: left;
+  padding-left: 22px;
 }
 
+/* ── Side panel ── */
 .side-panel {
   display: grid;
   gap: 12px;
@@ -258,9 +228,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
-}
+a:hover { text-decoration: underline; }
 
 .message {
   padding: 12px;
@@ -279,18 +247,12 @@ a:hover {
   background: var(--error-bg);
 }
 
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
+/* ── Responsive ── */
 @media (max-width: 820px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .result {
-    font-size: 54px;
-  }
+  .workspace { grid-template-columns: 1fr; }
+  .result { font-size: 54px; }
 }
 
 @media (max-width: 560px) {
@@ -299,30 +261,16 @@ a:hover {
     padding: 18px 0;
   }
 
-  .topbar,
-  .input-grid,
-  .actions {
-    grid-template-columns: 1fr;
-  }
+  .topbar { display: grid; }
 
-  .topbar {
-    display: grid;
-  }
-
-  .operation-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  h1 {
-    font-size: 30px;
-  }
+  h1 { font-size: 30px; }
 
   .display {
-    min-height: 150px;
+    min-height: 130px;
     padding: 18px;
   }
 
-  .result {
-    font-size: 44px;
-  }
+  .result { font-size: 44px; }
+
+  .btn { height: 56px; }
 }
