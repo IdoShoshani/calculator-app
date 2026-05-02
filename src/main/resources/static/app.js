@@ -1,7 +1,3 @@
-const form = document.getElementById("calculator-form");
-const operationButtons = Array.from(document.querySelectorAll(".operation-button"));
-const inputA = document.getElementById("input-a");
-const inputB = document.getElementById("input-b");
 const expressionValue = document.getElementById("expression-value");
 const resultValue = document.getElementById("result-value");
 const requestPreview = document.getElementById("request-preview");
@@ -9,99 +5,201 @@ const rawApiLink = document.getElementById("raw-api-link");
 const successPanel = document.getElementById("success-panel");
 const errorPanel = document.getElementById("error-panel");
 const healthBadge = document.getElementById("health-badge");
-const swapButton = document.getElementById("swap-button");
 
-let currentOperation = "add";
-let currentSymbol = "+";
+const OP_MAP = { "+": "add", "−": "subtract", "×": "multiply", "÷": "divide" };
 
-function buildRequestUrl() {
-  const a = inputA.value.trim();
-  const b = inputB.value.trim();
-  return `/api/calculate/${currentOperation}?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`;
+let display = "0";
+let firstOperand = null;
+let pendingOp = null;
+let waitingForSecond = false;
+let justCalculated = false;
+
+function formatNumber(n) {
+  if (Number.isInteger(n)) return String(n);
+  return String(parseFloat(n.toPrecision(10)));
 }
 
-function refreshUiText() {
-  const requestUrl = buildRequestUrl();
-  expressionValue.textContent = `${inputA.value || "?"} ${currentSymbol} ${inputB.value || "?"}`;
-  requestPreview.textContent = `GET ${requestUrl}`;
-  rawApiLink.href = requestUrl;
+function updateDisplay() {
+  resultValue.textContent = display.length > 12
+    ? parseFloat(display).toExponential(4)
+    : display;
 }
 
-function setOperation(button) {
-  currentOperation = button.dataset.operation;
-  currentSymbol = button.dataset.symbol;
-
-  for (const operationButton of operationButtons) {
-    operationButton.classList.toggle("active", operationButton === button);
-  }
-
-  refreshUiText();
+function setExpression(text) {
+  expressionValue.textContent = text;
 }
 
-function showSuccess(message) {
-  successPanel.textContent = message;
+function showSuccess(msg) {
+  successPanel.textContent = msg;
   successPanel.classList.remove("hidden");
   errorPanel.classList.add("hidden");
 }
 
-function showError(message) {
-  errorPanel.textContent = message;
+function showError(msg) {
+  errorPanel.textContent = msg;
   errorPanel.classList.remove("hidden");
   successPanel.classList.add("hidden");
 }
+
+function clearStatus() {
+  successPanel.classList.add("hidden");
+  errorPanel.classList.add("hidden");
+}
+
+function setActiveOp(op) {
+  document.querySelectorAll(".btn-op").forEach(b =>
+    b.classList.toggle("active-op", b.dataset.op === op)
+  );
+}
+
+function inputDigit(digit) {
+  if (waitingForSecond) {
+    display = digit;
+    waitingForSecond = false;
+  } else if (justCalculated) {
+    display = digit;
+    justCalculated = false;
+    firstOperand = null;
+    pendingOp = null;
+    setExpression("");
+    setActiveOp(null);
+  } else {
+    display = display === "0" ? digit : display + digit;
+  }
+  clearStatus();
+  updateDisplay();
+}
+
+function inputDecimal() {
+  if (waitingForSecond) {
+    display = "0.";
+    waitingForSecond = false;
+    updateDisplay();
+    return;
+  }
+  if (!display.includes(".")) {
+    display += ".";
+    updateDisplay();
+  }
+}
+
+function inputBackspace() {
+  if (justCalculated || display === "Error") return;
+  display = display.length > 1 ? display.slice(0, -1) : "0";
+  updateDisplay();
+}
+
+function clearAll() {
+  display = "0";
+  firstOperand = null;
+  pendingOp = null;
+  waitingForSecond = false;
+  justCalculated = false;
+  setExpression("");
+  setActiveOp(null);
+  requestPreview.textContent = "—";
+  rawApiLink.href = "#";
+  clearStatus();
+  updateDisplay();
+}
+
+async function performCalculation(a, b, op) {
+  const url = `/api/calculate/${OP_MAP[op]}?a=${a}&b=${b}`;
+  requestPreview.textContent = `GET ${url}`;
+  rawApiLink.href = url;
+  try {
+    const response = await fetch(url);
+    const payload = await response.json();
+    if (!response.ok) {
+      showError(payload.error || "Error");
+      display = "Error";
+      firstOperand = null;
+      pendingOp = null;
+      waitingForSecond = false;
+      justCalculated = true;
+      setActiveOp(null);
+      updateDisplay();
+      return null;
+    }
+    showSuccess("OK");
+    return payload.result;
+  } catch {
+    showError("API unreachable");
+    display = "Error";
+    updateDisplay();
+    return null;
+  }
+}
+
+async function inputOperator(op) {
+  const current = parseFloat(display);
+  if (firstOperand !== null && !waitingForSecond && !justCalculated) {
+    const result = await performCalculation(firstOperand, current, pendingOp);
+    if (result === null) return;
+    firstOperand = result;
+    display = formatNumber(result);
+    updateDisplay();
+  } else {
+    firstOperand = parseFloat(display);
+  }
+  pendingOp = op;
+  waitingForSecond = true;
+  justCalculated = false;
+  setExpression(`${formatNumber(firstOperand)} ${op}`);
+  setActiveOp(op);
+}
+
+async function inputEquals() {
+  if (firstOperand === null || pendingOp === null) return;
+  const second = parseFloat(display);
+  setExpression(`${formatNumber(firstOperand)} ${pendingOp} ${second} =`);
+  const result = await performCalculation(firstOperand, second, pendingOp);
+  if (result === null) return;
+  display = formatNumber(result);
+  firstOperand = result;
+  pendingOp = null;
+  waitingForSecond = false;
+  justCalculated = true;
+  setActiveOp(null);
+  updateDisplay();
+}
+
+document.querySelector(".numpad").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const { digit, op, action } = btn.dataset;
+  if (digit !== undefined)        inputDigit(digit);
+  else if (op)                    inputOperator(op);
+  else if (action === "clear")    clearAll();
+  else if (action === "backspace") inputBackspace();
+  else if (action === "decimal")  inputDecimal();
+  else if (action === "equals")   inputEquals();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key >= "0" && e.key <= "9")          inputDigit(e.key);
+  else if (e.key === ".")                     inputDecimal();
+  else if (e.key === "+")                     inputOperator("+");
+  else if (e.key === "-")                     inputOperator("−");
+  else if (e.key === "*")                     inputOperator("×");
+  else if (e.key === "/") { e.preventDefault(); inputOperator("÷"); }
+  else if (e.key === "Enter" || e.key === "=") inputEquals();
+  else if (e.key === "Backspace")             inputBackspace();
+  else if (e.key === "Escape" || e.key.toLowerCase() === "c") clearAll();
+});
 
 async function checkHealth() {
   try {
     const response = await fetch("/actuator/health");
     const payload = await response.json();
-
     if (response.ok && payload.status === "UP") {
       healthBadge.textContent = "API healthy";
       healthBadge.className = "health-badge up";
       return;
     }
-  } catch (error) {
-    // The UI still works enough to show the connection error below.
-  }
-
+  } catch {}
   healthBadge.textContent = "API down";
   healthBadge.className = "health-badge down";
 }
 
-async function calculate(event) {
-  event.preventDefault();
-  refreshUiText();
-
-  try {
-    const response = await fetch(buildRequestUrl());
-    const payload = await response.json();
-
-    if (!response.ok) {
-      showError(payload.error || "Calculation failed");
-      return;
-    }
-
-    resultValue.textContent = payload.result;
-    showSuccess("OK");
-  } catch (error) {
-    showError("API request failed");
-  }
-}
-
-for (const button of operationButtons) {
-  button.addEventListener("click", () => setOperation(button));
-}
-
-swapButton.addEventListener("click", () => {
-  const nextA = inputB.value;
-  inputB.value = inputA.value;
-  inputA.value = nextA;
-  refreshUiText();
-});
-
-inputA.addEventListener("input", refreshUiText);
-inputB.addEventListener("input", refreshUiText);
-form.addEventListener("submit", calculate);
-
-refreshUiText();
 checkHealth();

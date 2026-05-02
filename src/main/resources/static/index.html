@@ -19,46 +19,47 @@
     <main class="workspace">
       <section class="calculator-panel" aria-label="Calculator">
         <div class="display">
-          <span id="expression-value" class="expression">12 + 3</span>
-          <output id="result-value" class="result" for="input-a input-b">15</output>
+          <span id="expression-value" class="expression"></span>
+          <output id="result-value" class="result">0</output>
         </div>
 
-        <form id="calculator-form" class="calculator-form">
-          <div class="input-grid">
-            <label class="field">
-              <span>A</span>
-              <input id="input-a" name="a" type="number" step="any" value="12" required>
-            </label>
-            <label class="field">
-              <span>B</span>
-              <input id="input-b" name="b" type="number" step="any" value="3" required>
-            </label>
-          </div>
+        <div class="numpad" role="group" aria-label="Calculator keypad">
+          <button class="btn btn-fn" data-action="clear">C</button>
+          <button class="btn btn-fn" data-action="backspace">⌫</button>
+          <div></div>
+          <button class="btn btn-op" data-op="÷">÷</button>
 
-          <div class="operation-grid" role="group" aria-label="Operation">
-            <button type="button" class="operation-button active" data-operation="add" data-symbol="+" aria-label="Add">+</button>
-            <button type="button" class="operation-button" data-operation="subtract" data-symbol="-" aria-label="Subtract">-</button>
-            <button type="button" class="operation-button" data-operation="multiply" data-symbol="x" aria-label="Multiply">x</button>
-            <button type="button" class="operation-button" data-operation="divide" data-symbol="/" aria-label="Divide">/</button>
-          </div>
+          <button class="btn btn-digit" data-digit="7">7</button>
+          <button class="btn btn-digit" data-digit="8">8</button>
+          <button class="btn btn-digit" data-digit="9">9</button>
+          <button class="btn btn-op" data-op="×">×</button>
 
-          <div class="actions">
-            <button id="calculate-button" class="primary-button" type="submit">Calculate</button>
-            <button id="swap-button" class="secondary-button" type="button">Swap</button>
-          </div>
-        </form>
+          <button class="btn btn-digit" data-digit="4">4</button>
+          <button class="btn btn-digit" data-digit="5">5</button>
+          <button class="btn btn-digit" data-digit="6">6</button>
+          <button class="btn btn-op" data-op="−">−</button>
+
+          <button class="btn btn-digit" data-digit="1">1</button>
+          <button class="btn btn-digit" data-digit="2">2</button>
+          <button class="btn btn-digit" data-digit="3">3</button>
+          <button class="btn btn-op" data-op="+">+</button>
+
+          <button class="btn btn-digit btn-zero" data-digit="0">0</button>
+          <button class="btn btn-digit" data-action="decimal">.</button>
+          <button class="btn btn-eq" data-action="equals">=</button>
+        </div>
       </section>
 
       <aside class="side-panel" aria-label="API details">
         <section class="panel-block">
           <h2>Request</h2>
-          <code id="request-preview">GET /api/calculate/add?a=12&amp;b=3</code>
-          <a id="raw-api-link" href="/api/calculate/add?a=12&b=3" target="_blank" rel="noreferrer">Open raw response</a>
+          <code id="request-preview">—</code>
+          <a id="raw-api-link" href="#" target="_blank" rel="noreferrer">Open raw response</a>
         </section>
 
         <section class="panel-block">
           <h2>Status</h2>
-          <div id="success-panel" class="message success">Ready</div>
+          <div id="success-panel" class="message success hidden"></div>
           <div id="error-panel" class="message error hidden" role="alert"></div>
           <a href="/actuator/health" target="_blank" rel="noreferrer">Open health endpoint</a>
         </section>
