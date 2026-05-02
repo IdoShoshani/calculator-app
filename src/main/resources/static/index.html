@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator App</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="product-label">Spring Boot</p>
+        <h1>Calculator</h1>
+      </div>
+      <span id="health-badge" class="health-badge pending">Checking API</span>
+    </header>
+
+    <main class="workspace">
+      <section class="calculator-panel" aria-label="Calculator">
+        <div class="display">
+          <span id="expression-value" class="expression">12 + 3</span>
+          <output id="result-value" class="result" for="input-a input-b">15</output>
+        </div>
+
+        <form id="calculator-form" class="calculator-form">
+          <div class="input-grid">
+            <label class="field">
+              <span>A</span>
+              <input id="input-a" name="a" type="number" step="any" value="12" required>
+            </label>
+            <label class="field">
+              <span>B</span>
+              <input id="input-b" name="b" type="number" step="any" value="3" required>
+            </label>
+          </div>
+
+          <div class="operation-grid" role="group" aria-label="Operation">
+            <button type="button" class="operation-button active" data-operation="add" data-symbol="+" aria-label="Add">+</button>
+            <button type="button" class="operation-button" data-operation="subtract" data-symbol="-" aria-label="Subtract">-</button>
+            <button type="button" class="operation-button" data-operation="multiply" data-symbol="x" aria-label="Multiply">x</button>
+            <button type="button" class="operation-button" data-operation="divide" data-symbol="/" aria-label="Divide">/</button>
+          </div>
+
+          <div class="actions">
+            <button id="calculate-button" class="primary-button" type="submit">Calculate</button>
+            <button id="swap-button" class="secondary-button" type="button">Swap</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="side-panel" aria-label="API details">
+        <section class="panel-block">
+          <h2>Request</h2>
+          <code id="request-preview">GET /api/calculate/add?a=12&amp;b=3</code>
+          <a id="raw-api-link" href="/api/calculate/add?a=12&b=3" target="_blank" rel="noreferrer">Open raw response</a>
+        </section>
+
+        <section class="panel-block">
+          <h2>Status</h2>
+          <div id="success-panel" class="message success">Ready</div>
+          <div id="error-panel" class="message error hidden" role="alert"></div>
+          <a href="/actuator/health" target="_blank" rel="noreferrer">Open health endpoint</a>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
