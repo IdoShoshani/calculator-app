@@ -1,8 +1,8 @@
-version: '3'
+version: "3"
 
 vars:
-  APP_PORT: '{{env "SERVER_PORT" | default "8090"}}'
-  HOST_PORT: '{{.APP_PORT}}'
+  APP_PORT: '{{env "SERVER_PORT" | default "8080"}}'
+  HOST_PORT: "{{.APP_PORT}}"
   DOCKER_IMAGE: calculator-app
   TERRAFORM_DIR: terraform
 
@@ -62,48 +62,48 @@ tasks:
 
   tf:init:
     desc: Initialize Terraform
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmd: terraform init {{.CLI_ARGS}}
 
   tf:fmt:
     desc: Format Terraform files
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmd: terraform fmt -recursive {{.CLI_ARGS}}
 
   tf:fmt-check:
     desc: Check Terraform formatting without changing files
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmd: terraform fmt -check -diff {{.CLI_ARGS}}
 
   tf:validate:
     desc: Validate the Terraform configuration
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmds:
       - task: tf:init
       - terraform validate {{.CLI_ARGS}}
 
   tf:plan:
     desc: Run terraform plan
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmds:
       - task: tf:init
       - terraform plan {{.CLI_ARGS}}
 
   tf:apply:
     desc: Run terraform apply
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmds:
       - task: tf:init
       - terraform apply {{.CLI_ARGS}}
 
   tf:destroy:
     desc: Run terraform destroy
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmds:
       - task: tf:init
       - terraform destroy {{.CLI_ARGS}}
 
   tf:output:
     desc: Show Terraform outputs
-    dir: '{{.TERRAFORM_DIR}}'
+    dir: "{{.TERRAFORM_DIR}}"
     cmd: terraform output {{.CLI_ARGS}}
