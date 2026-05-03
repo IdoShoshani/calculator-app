@@ -10,13 +10,13 @@ A Spring Boot REST calculator with a browser UI, containerized with Docker and d
 
 ## Prerequisites
 
-| Tool       | macOS                             | Windows                      |
-| ---------- | --------------------------------- | ---------------------------- |
-| Java 21+   | `brew install --cask temurin@21`  | [adoptium.net](https://adoptium.net) |
-| Task       | `brew install go-task`            | `winget install Task.Task`   |
-| Docker     | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
-| Terraform  | `brew install terraform`          | `choco install terraform`    |
-| AWS CLI    | `brew install awscli`             | `choco install awscli`       |
+| Tool      | macOS                                                             | Windows                                                           |
+| --------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Java 21+  | `brew install --cask temurin@21`                                  | [adoptium.net](https://adoptium.net)                              |
+| Task      | `brew install go-task`                                            | `winget install Task.Task`                                        |
+| Docker    | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | [Docker Desktop](https://www.docker.com/products/docker-desktop/) |
+| Terraform | `brew install terraform`                                          | `choco install terraform`                                         |
+| AWS CLI   | `brew install awscli`                                             | `choco install awscli`                                            |
 
 ---
 
@@ -49,14 +49,14 @@ Opens on `http://localhost:8080`.
 
 ## API
 
-| Method | Path                      | Params   | Response            |
-| ------ | ------------------------- | -------- | ------------------- |
-| GET    | `/`                       | —        | Browser UI          |
-| GET    | `/api/calculate/add`      | `a`, `b` | `{"result": 7.0}`   |
-| GET    | `/api/calculate/subtract` | `a`, `b` | `{"result": 1.0}`   |
-| GET    | `/api/calculate/multiply` | `a`, `b` | `{"result": 12.0}`  |
-| GET    | `/api/calculate/divide`   | `a`, `b` | `{"result": 2.5}`   |
-| GET    | `/actuator/health`        | —        | `{"status": "UP"}`  |
+| Method | Path                      | Params   | Response           |
+| ------ | ------------------------- | -------- | ------------------ |
+| GET    | `/`                       | —        | Browser UI         |
+| GET    | `/api/calculate/add`      | `a`, `b` | `{"result": 7.0}`  |
+| GET    | `/api/calculate/subtract` | `a`, `b` | `{"result": 1.0}`  |
+| GET    | `/api/calculate/multiply` | `a`, `b` | `{"result": 12.0}` |
+| GET    | `/api/calculate/divide`   | `a`, `b` | `{"result": 2.5}`  |
+| GET    | `/actuator/health`        | —        | `{"status": "UP"}` |
 
 `/divide` returns HTTP 400 with `{"error": "Division by zero"}` when `b=0`.
 
@@ -73,16 +73,16 @@ curl "http://localhost:8090/api/calculate/add?a=3&b=4"
 
 Every push to `main` runs three sequential jobs:
 
-```
+```text
 test → build-and-push → deploy
         (main only)     (main only)
 ```
 
-| Job              | Trigger          | What it does                                             |
-| ---------------- | ---------------- | -------------------------------------------------------- |
+| Job              | Trigger          | What it does                                              |
+| ---------------- | ---------------- | --------------------------------------------------------- |
 | `test`           | all pushes & PRs | Runs `task check`: lint + unit tests + Terraform validate |
-| `build-and-push` | push to `main`   | Builds multi-arch Docker image, pushes to Docker Hub     |
-| `deploy`         | push to `main`   | Deploys to EC2 via AWS SSM (no SSH required)             |
+| `build-and-push` | push to `main`   | Builds multi-arch Docker image, pushes to Docker Hub      |
+| `deploy`         | push to `main`   | Deploys to EC2 via AWS SSM (no SSH required)              |
 
 ### Required GitHub Secrets
 
@@ -128,7 +128,7 @@ task tf:destroy
 
 ## Project Structure
 
-```
+```text
 calculator-app/
 ├── .github/workflows/ci-cd.yml      # 3-job pipeline: test → build → deploy
 ├── src/
